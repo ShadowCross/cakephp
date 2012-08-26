@@ -75,6 +75,9 @@ class UpgradeShell extends AppShell {
 		if ($this->params['git'] && !is_dir('.git')) {
 			$this->out(__d('cake_console', '<warning>No git repository detected!</warning>'), 1, Shell::QUIET);
 		}
+		if ($this->params['svn'] && !is_dir('.svn')) {
+			$this->out(__d('cake_console', '<warning>No subversion repository detected!</warning>'), 1, Shell::QUIET);
+		}
 	}
 
 /**
@@ -164,6 +167,9 @@ class UpgradeShell extends AppShell {
 					if ($this->params['git']) {
 						exec('git mv -f ' . escapeshellarg($old) . ' ' . escapeshellarg($old . '__'));
 						exec('git mv -f ' . escapeshellarg($old . '__') . ' ' . escapeshellarg($new));
+					} elseif ($this->params['svn']) {
+						exec('svn mv --force ' . escapeshellarg($old) . ' ' . escapeshellarg($old . '__'));
+						exec('svn mv --force ' . escapeshellarg($old . '__') . ' ' . escapeshellarg($new));
 					} else {
 						$Folder = new Folder($old);
 						$Folder->move($new);
@@ -591,6 +597,9 @@ class UpgradeShell extends AppShell {
 				if ($this->params['git']) {
 					exec('git mv -f ' . escapeshellarg($old) . ' ' . escapeshellarg($old . '__'));
 					exec('git mv -f ' . escapeshellarg($old . '__') . ' ' . escapeshellarg($new));
+				} elseif ($this->params['svn']) {
+					exec('svn mv --force ' . escapeshellarg($old) . ' ' . escapeshellarg($old . '__'));
+					exec('svn mv --force ' . escapeshellarg($old . '__') . ' ' . escapeshellarg($new));
 				} else {
 					$Folder = new Folder($old);
 					$Folder->move($new);
@@ -621,6 +630,9 @@ class UpgradeShell extends AppShell {
 				if ($this->params['git']) {
 					exec('git mv -f ' . escapeshellarg($old) . ' ' . escapeshellarg($old . '__'));
 					exec('git mv -f ' . escapeshellarg($old . '__') . ' ' . escapeshellarg($new));
+				} elseif ($this->params['svn']) {
+					exec('svn mv --force --parents ' . escapeshellarg($old) . ' ' . escapeshellarg($old . '__'));
+					exec('svn mv --force --parents ' . escapeshellarg($old . '__') . ' ' . escapeshellarg($new));
 				} else {
 					rename($old, $new);
 				}
@@ -703,6 +715,9 @@ class UpgradeShell extends AppShell {
 			$dir = dirname($new);
 			if (!is_dir($dir)) {
 				new Folder($dir, true);
+				if ($this->params['svn']) {
+					exec('svn add ' . $dir);
+				}
 			}
 
 			$this->out(__d('cake_console', 'Moving %s to %s', $file, $new), 1, Shell::VERBOSE);
@@ -710,6 +725,10 @@ class UpgradeShell extends AppShell {
 				if ($this->params['git']) {
 					exec('git mv -f ' . escapeshellarg($file) . ' ' . escapeshellarg($file . '__'));
 					exec('git mv -f ' . escapeshellarg($file . '__') . ' ' . escapeshellarg($new));
+				} elseif ($this->params['svn']) {
+					$this->out(__d('cake_console', 'svn mv --force --parents %s %s', $file, $new));
+					exec('svn mv --force ' . escapeshellarg($file) . ' ' . escapeshellarg($file . '__'));
+					exec('svn mv --force ' . escapeshellarg($file . '__') . ' ' . escapeshellarg($new));
 				} else {
 					rename($file, $new);
 				}
@@ -799,6 +818,11 @@ class UpgradeShell extends AppShell {
 				'git' => array(
 					'short' => 'g',
 					'help' => __d('cake_console', 'Use git command for moving files around.'),
+					'boolean' => true
+				),
+				'svn' => array(
+					'short' => 's',
+					'help' => __d('cake_console', 'Use svn command for moving files around.'),
 					'boolean' => true
 				),
 				'dry-run' => array(
